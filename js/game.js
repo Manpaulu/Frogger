@@ -26,8 +26,8 @@ let rightKey;
 let leftKey;
 let MumFrog;
 let heart;
-let carRight = [];
-let carLeft = [];
+let cars = [];
+
 
 //
 function init() {
@@ -43,6 +43,7 @@ function preload() {
     this.load.image("car1", "./assets/images/car.png")
     this.load.image("car2", "./assets/images/snowCar.png" )
     this.load.image("car3", "./assets/images/F1-1.png")
+    this.load.image("deadFrog", "./assets/images/deadFrog.png")
     
 }
 
@@ -61,7 +62,8 @@ function create() {
     MumFrog = this.add.image(rndx, 24, "mumfrog");
     
     frog = this.add.image(rnd_x, 312, "frog");
-
+    deadFrog = this.add.image(rnd_x, 312, "deadFrog");
+    deadFrog.setVisible(false);
     
     upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
@@ -83,28 +85,29 @@ function create() {
     // let car_RndX = (16 * Phaser.Math.Between(0,29));
     // let car_RndY = (16 * Phaser.Math.Between(4, 16));
     // car = this.add.image(car_RndX, car_RndY, "car"+randomNumber);
-    
+    let i;
     for(let j = 0; j < 3; j++) {
-        for (let i = 0; i < 10; i++) {
-    
+        let randomSpeed = Phaser.Math.Between(60, 100)
+        for (let i = 0; i < 7; i++) {
+            
             let randomNumber = Phaser.Math.Between(1, 3);
             let espaceRandom = (Phaser.Math.Between (-15, 15));
             
-            carRight[i] = this.physics.add.image (26+i*42+ espaceRandom, 72+ j * 32,"car"+randomNumber); //26 c'est la position de base à laquelle on ajoute (i*42).42 est un espace de base. On ajoute en plus un espacement random. 
-            carRight[i].setVelocity(100,0);
-            if (carRight[i].x > 480) carRight[i].x == 0;
+            cars[i+7*j] = this.physics.add.image (26 + i * 65 + espaceRandom, 72 + j * 32,"car"+randomNumber); //pour la position, 26 c'est la position de base à laquelle on ajoute (i*x).x=42 est un espace de base. On ajoute en plus un espacement random. C'est la même logique pour j, on doit mettre une base ici 72, et ensuite on le met à un interval régulier * j. On doit mettre une base, parce que j vaut 0 et la multiplication donnerait 0.
+            cars[i+7*j].setVelocity(randomSpeed,0); //cars[i+7*j] car on a fait juste une liste et pas un tableau, on doit donc cibler les voitures 11, 12, 13 ... jusqu'à 33.
+
+        }};
         
-    }};
-    
     for(let l = 0; l < 3; l++) {
-        for (let k = 0; k < 10; k++) {
+        randomSpeed = Phaser.Math.Between(60, 100);
+        for (let k = 0; k < 7; k++) {
         
             randomNumber = Phaser.Math.Between(1, 3);
             espaceRandom = (Phaser.Math.Between (-15, 15));
             
-            carLeft[k] = this.physics.add.image(26+k*42 + espaceRandom, 180 + l * 32,"car"+randomNumber)
-            carLeft[k].setAngle(180);
-            carLeft[k].setVelocity(-100,0);
+            cars[21+k+7*l] = this.physics.add.image(26 + k * 65 + espaceRandom, 180 + l * 32,"car"+randomNumber) 
+            cars[21+k+7*l].setAngle(180);
+            cars[21+k+7*l].setVelocity(-randomSpeed,0);
     }};
     
 }
@@ -131,9 +134,26 @@ function update() {
         frog.getBounds(),MumFrog.getBounds() )) {
             heart.tweenScale.play()
             if (heart.scale > 4) this.scene.restart();   
-        }
-        
+        }  
                             
     // car1.x += 2;
-                            
+
+    for(let i = 0; i < cars.length; i++) {
+
+        if (cars[i].x > 480) cars[i].x = 0;
+        if (cars[i].x < 0) cars[i].x = 480;
+        if(Phaser.Geom.Intersects.RectangleToRectangle(
+            frog.getBounds(),cars[i].getBounds()
+            )) {
+                deadFrog.x = frog.x;
+                deadFrog.y = frog.y;
+                deadFrog.setVisible(true)
+                frog.setVisible(false)
+                let timer = this.time.addEvent({
+                    delay : 4000,
+                    callback: function(){this.scene.restart();},
+                    callbackScope:this, 
+                    repeat:0 })
+                };
+    }                    
 }
